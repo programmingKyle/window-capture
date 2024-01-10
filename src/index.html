@@ -2,11 +2,26 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Hello World!</title>
+    <title>Window Capture</title>
     <link rel="stylesheet" href="index.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   </head>
   <body>
-    <h1>💖 Hello World!</h1>
-    <p>Welcome to your Electron application.</p>
+    <div class="base-grid">
+      <div class="window-grid">
+        <h1>Select a Window</h1>
+        <div class="window-content-grid">
+          <div class="window-content-item">
+            <img class="select" src="./images/testshot.png" alt="Test Shot">
+            <h6>App Name</h6>
+          </div>
+          <div class="window-content-item">
+            <img src="./images/testshot.png" alt="Test Shot">
+            <h6>App Name</h6>
+          </div>
+        </div>
+        <button class="user-button">Take Screenshot</button>  
+      </div>
+    </div>
   </body>
 </html>
