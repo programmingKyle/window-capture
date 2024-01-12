@@ -1,5 +1,7 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain, desktopCapturer } = require('electron');
 const path = require('path');
+
+let mainWindow;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -8,7 +10,7 @@ if (require('electron-squirrel-startup')) {
 
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 450,
     height: 600,
     webPreferences: {
@@ -45,5 +47,21 @@ app.on('activate', () => {
   }
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+
+ipcMain.handle('get-open-windows', async () => {
+  try {
+    // Get sources using desktopCapturer
+    const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
+    // Filter out sources with the same name as your application (excluding duplicates)
+    const filteredSources = sources.filter((source, index, self) => {
+      return source.name !== 'window-capture' || index === self.findIndex(s => s.name === 'window-capture');
+    });
+
+    return filteredSources;
+  } catch (error) {
+    console.error('Error getting screen sources:', error.message);
+    return [];
+  }
+});
