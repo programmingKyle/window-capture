@@ -58,7 +58,6 @@ ipcMain.handle('get-open-windows', async () => {
     const filteredSources = sources.filter((source, index, self) => {
       return source.name !== 'window-capture' || index === self.findIndex(s => s.name === 'window-capture');
     });
-
     return filteredSources;
   } catch (error) {
     console.error('Error getting screen sources:', error.message);
