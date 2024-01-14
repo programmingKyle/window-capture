@@ -19,6 +19,11 @@ h1,h2,h3,h4,h5,h6 {
   color: #ffd60a;
 }
 
+.header-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+
 .base-grid {
   height: 100%;
   display: grid;
@@ -78,6 +83,15 @@ h1,h2,h3,h4,h5,h6 {
   border-width: 1px;
 }
 
+.slim-button {
+  background-color: transparent;
+  color: #ffd60a;
+  border-style: none;
+}
+
+.slim-button:hover {
+  color: #ffed94;
+}
 
 ::-webkit-scrollbar {
   width: 6px;

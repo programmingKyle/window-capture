@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, desktopCapturer, nativeImage, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, desktopCapturer, nativeImage, screen, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const IS_OSX = process.platform === 'darwin';
@@ -125,9 +125,6 @@ ipcMain.handle('capture-screenshots', async (event, data) => {
 
       const screenshotPath = availableFilename; // Don't join again with screenshotsDirectory
       fs.writeFileSync(screenshotPath, imageBuffer);
-
-      captureScreenshot();
-
     } catch (error) {
       console.error(`Error capturing screenshot for window ${windowId}:`, error.message);
     }
@@ -146,3 +143,18 @@ function findAvailableFilename(basePath, extension) {
 
   return fileName;
 }
+
+
+ipcMain.handle('open-screenshot-folder', (event, data) => {
+  if (!data || !data.path || data.path === '') {
+    let absolutePath;
+    const appPath = app.getAppPath();
+    console.log(appPath);
+    absolutePath = path.join(appPath, 'src', 'images');
+  } else {
+    // This will be used later
+    absolutePath = data.path;
+  }
+
+  shell.openPath(absolutePath);
+});

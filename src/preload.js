@@ -11,4 +11,5 @@ contextBridge.exposeInMainWorld('api', {
     getScreenSources: () => ipcRenderer.invoke('get-sources'),
 
     captureScreenshots: (data) => ipcRenderer.invoke('capture-screenshots', data),
+    openScreenshotFolder: (data) => ipcRenderer.invoke('open-screenshot-folder', data),
 });
