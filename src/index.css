@@ -19,9 +19,14 @@ h1,h2,h3,h4,h5,h6 {
   color: #ffd60a;
 }
 
-.header-grid {
+.home-header-grid {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
+}
+
+.options-header-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
 }
 
 .base-grid {
@@ -47,6 +52,14 @@ h1,h2,h3,h4,h5,h6 {
   overflow: auto;
   align-content: start;
   border-radius: 5px;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-gap: 5px;
+  margin: 10px;
+  overflow: hidden;
 }
 
 .user-button {
@@ -87,6 +100,7 @@ h1,h2,h3,h4,h5,h6 {
   background-color: transparent;
   color: #ffd60a;
   border-style: none;
+  margin-top: 2px;
 }
 
 .slim-button:hover {

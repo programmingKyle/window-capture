@@ -146,15 +146,23 @@ function findAvailableFilename(basePath, extension) {
 
 
 ipcMain.handle('open-screenshot-folder', (event, data) => {
-  if (!data || !data.path || data.path === '') {
-    let absolutePath;
+  if (!data) return;
+  let absolutePath;
+
+  if (data.path === ''){
     const appPath = app.getAppPath();
-    console.log(appPath);
     absolutePath = path.join(appPath, 'src', 'images');
   } else {
-    // This will be used later
     absolutePath = data.path;
   }
 
   shell.openPath(absolutePath);
+});
+
+
+ipcMain.handle('page-handler', (req, data) => {
+  if (!data || !data.location) return;
+  const htmlFilePath = path.join(__dirname, `${data.location}.html`);
+  mainWindow.loadFile(htmlFilePath);
+
 });
