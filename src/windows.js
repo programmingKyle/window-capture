@@ -1,42 +1,72 @@
 const contentDiv_el = document.getElementById('contentDiv');
 
 document.addEventListener('DOMContentLoaded', () => {
-  populateContent();
+  getDisplayMedia();
 });
 
-async function populateContent() {
-  try {
-    // Await the asynchronous function before using the result
-    const result = await api.getOpenWindows();
+function getDisplayMedia() {
+	if (api.isOSX()) {
+		screenPickerOptions.system_preferences = true;
+	}
 
-    result.forEach(element => {
+	return new Promise(async (resolve, reject) => {
+		let has_access = await api.getScreenAccess();
+		if (!has_access) {
+			return reject('none');
+		}
 
-      const contentItemDiv_el = document.createElement('div');
-      contentItemDiv_el.classList = 'window-content-item';
+		try {
+			const sources = await api.getScreenSources();
+			populateAvailableWindows(sources, async (id) => {
+				try {
+					const source = sources.find(source => source.id === id);
+					if (!source) {
+						return reject('none');
+					}
 
-      const itemImage_el = document.createElement('img');
-      const itemHeader_el = document.createElement('h6');
-
-      // Check if element.thumbnail is a NativeImage object
-      if (element.thumbnail && typeof element.thumbnail.toDataURL === 'function') {
-        // Convert NativeImage to Base64-encoded image
-        const imageData = element.thumbnail.toDataURL();
-        console.log('Base64-encoded image data:', imageData);
-        itemImage_el.src = imageData;
-      } else {
-        console.warn('Invalid image representation:', element.thumbnail);
-      }
-
-      // Set header text
-      itemHeader_el.innerText = element.name;
-
-      contentItemDiv_el.append(itemImage_el);
-      contentItemDiv_el.append(itemHeader_el);
-
-      contentDiv_el.append(contentItemDiv_el);
-    });
-  } catch (error) {
-    console.error('Error populating content:', error.message);
-  }
+					const stream = await window.navigator.mediaDevices.getUserMedia({
+						audio: false,
+						video: {
+							mandatory: {
+								chromeMediaSource: 'desktop',
+								chromeMediaSourceId: source.id
+							}
+						}
+					});
+					resolve(stream);
+				}
+				catch (err) {
+					reject(err);
+				}
+			}, {});
+		}
+		catch (err) {
+			reject(err);
+		}
+	});
 }
 
+
+function populateAvailableWindows(sources) {
+	contentDiv_el.innerHTML = '';
+
+	sources.forEach(source => {
+    if (source.thumbnailURL === 'data:image/png;base64,') return; // If there is no screenshot move on
+    
+    const contentItemDiv_el = document.createElement('div');
+    contentItemDiv_el.classList = 'window-content-item';
+
+    const itemImage_el = document.createElement('img');
+		itemImage_el.src = source.thumbnailURL;
+    const itemHeader_el = document.createElement('h6');
+    itemHeader_el.innerText = source.name;
+
+
+		contentItemDiv_el.append(itemImage_el);
+		contentItemDiv_el.append(itemHeader_el);
+		contentItemDiv_el.onclick = () => {
+      console.log(source.id);
+		};
+		contentDiv_el.append(contentItemDiv_el);
+	});
+}

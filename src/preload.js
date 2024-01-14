@@ -2,5 +2,11 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
     getOpenWindows: () => ipcRenderer.invoke('get-open-windows'),
-    captureScreenshot: (data) => ipcRenderer.invoke('capture-screenshot', data),
+
+    isOSX: () => process.platform === 'darwin',
+    isWindows: () => process.platform === 'win32',
+    isLinux: () => /linux/.test(process.platform),
+    openScreenSecurity: () => ipcRenderer.invoke('open-screen-security'),
+    getScreenAccess: () => ipcRenderer.invoke('get-screen-access'),
+    getScreenSources: () => ipcRenderer.invoke('get-sources'),
 });

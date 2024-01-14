@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, desktopCapturer } = require('electron');
 const path = require('path');
+const IS_OSX = process.platform === 'darwin';
 
 let mainWindow;
 
@@ -15,6 +16,7 @@ const createWindow = () => {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true,
     },
   });
 
@@ -50,17 +52,13 @@ app.on('activate', () => {
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
-ipcMain.handle('get-open-windows', async () => {
-  try {
-    // Get sources using desktopCapturer
-    const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
-    // Filter out sources with the same name as your application (excluding duplicates)
-    const filteredSources = sources.filter((source, index, self) => {
-      return source.name !== 'window-capture' || index === self.findIndex(s => s.name === 'window-capture');
+ipcMain.handle('open-screen-security', () => util.openSystemPreferences('security', 'Privacy_ScreenCapture'));
+ipcMain.handle('get-screen-access', () => !IS_OSX || systemPreferences.getMediaAccessStatus('screen') === 'granted');
+ipcMain.handle('get-sources', async () => {
+    return desktopCapturer.getSources({types: ['window', 'screen']}).then(async sources => {
+        return sources.map(source => {
+            source.thumbnailURL = source.thumbnail.toDataURL();
+            return source;
+        });
     });
-    return filteredSources;
-  } catch (error) {
-    console.error('Error getting screen sources:', error.message);
-    return [];
-  }
 });
