@@ -20,7 +20,6 @@ function getDisplayMedia() {
 
 		try {
 			const sources = await api.getScreenSources();
-      console.log(sources);
 			populateAvailableWindows(sources, async (id) => {
 				try {
 					const source = sources.find(source => source.id === id);
@@ -55,36 +54,39 @@ function populateAvailableWindows(sources) {
 	contentDiv_el.innerHTML = '';
 
 	sources.forEach(source => {
-    console.log(source.id);
-    if (source.thumbnailURL === 'data:image/png;base64,') return; // If there is no screenshot move on
+		if (source.thumbnailURL === 'data:image/png;base64,') return; // If there is no screenshot move on
     
-    const contentItemDiv_el = document.createElement('div');
-    contentItemDiv_el.classList = 'window-content-item';
+		const contentItemDiv_el = document.createElement('div');
+		contentItemDiv_el.classList = 'window-content-item';
 
-    const itemImage_el = document.createElement('img');
+		const itemImage_el = document.createElement('img');
 		itemImage_el.src = source.thumbnailURL;
-    const itemHeader_el = document.createElement('h6');
-    itemHeader_el.innerText = source.name;
+		const itemHeader_el = document.createElement('h6');
+		itemHeader_el.innerText = source.name;
 
 
 		contentItemDiv_el.append(itemImage_el);
 		contentItemDiv_el.append(itemHeader_el);
 		contentDiv_el.append(contentItemDiv_el);
 
-    handleContentClick(contentItemDiv_el, itemImage_el, source.id);
+		const detials = {
+			id: source.id,
+			name: source.name,
+		}
+
+		handleContentClick(contentItemDiv_el, itemImage_el, detials);
 
 	});
 }
 
-function handleContentClick(item, image, id){
+function handleContentClick(item, image, detials){
   item.addEventListener('click', () => {
     if (image.classList.contains('select')) {
       image.classList.remove('select');
-      removeIDFromArray(id);
+      removeIDFromArray(detials);
     } else {
       image.classList.add('select');
-      selected.push(id);
-      console.log(selected);
+      selected.push(detials);
     }
   });
 }
@@ -93,7 +95,6 @@ function removeIDFromArray(id){
   const index = selected.indexOf(id);
   if (index !== -1) {
     selected.splice(index, 1);
-    console.log(selected);
   }
 }
 

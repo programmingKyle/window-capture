@@ -56,22 +56,31 @@ app.on('activate', () => {
 ipcMain.handle('open-screen-security', () => util.openSystemPreferences('security', 'Privacy_ScreenCapture'));
 ipcMain.handle('get-screen-access', () => !IS_OSX || systemPreferences.getMediaAccessStatus('screen') === 'granted');
 ipcMain.handle('get-sources', async () => {
-    return desktopCapturer.getSources({types: ['window', 'screen']}).then(async sources => {
-        return sources.map(source => {
-            source.thumbnailURL = source.thumbnail.toDataURL();
-            return source;
-        });
+  try {
+    const sources = await desktopCapturer.getSources({
+      types: ['window', 'screen'],
+      thumbnailSize: {
+        width: 1920, // Set the desired width
+        height: 1080, // Set the desired height
+      },
     });
+
+    return sources.map(source => {
+      source.thumbnailURL = source.thumbnail.toDataURL();
+      return source;
+    });
+  } catch (error) {
+    console.error('Error getting sources:', error.message);
+    return [];
+  }
 });
 
 
 
 ipcMain.handle('capture-screenshots', async (event, data) => {
-  if (!data || !data.windowIds) {
+  if (!data || !data.detials) {
     return;
   }
-
-  console.log(data.windowIds);
 
   const screenshotsDirectory = path.join(__dirname, 'images');
 
@@ -81,7 +90,10 @@ ipcMain.handle('capture-screenshots', async (event, data) => {
   }
 
   // Iterate through each window id
-  for (const windowId of data.windowIds) {
+  for (const windowId of data.detials) {
+    const id = windowId.id;
+    const name = windowId.name;
+
     try {
       // Get the display info for the screen containing the window
       const windowDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
@@ -90,15 +102,15 @@ ipcMain.handle('capture-screenshots', async (event, data) => {
       const sources = await desktopCapturer.getSources({
         types: ['window', 'screen'],
         thumbnailSize: {
-          width: windowDisplay.workAreaSize.width,
-          height: windowDisplay.workAreaSize.height,
+          width: 1920, // Set the desired width
+          height: 1080, // Set the desired height
         },
         fetchWindowIcons: true,
       });
 
-      const windowSource = sources.find(source => source.id === windowId);
+      const windowSource = sources.find(source => source.id === id);
       if (!windowSource) {
-        console.error(`Window with id ${windowId} not found.`);
+        console.error(`Window with id ${id} not found.`);
         continue;
       }
 
@@ -106,13 +118,31 @@ ipcMain.handle('capture-screenshots', async (event, data) => {
       const imageBuffer = image.toPNG();
 
       // Sanitize windowId for filename
-      const sanitizedWindowId = windowId.replace(/:/g, '_');
-      const screenshotPath = path.join(screenshotsDirectory, `screenshot_${sanitizedWindowId}.png`);
+      const sanitizedWindowId = id.replace(/:/g, '_');
+
+      // Find an available filename
+      const availableFilename = findAvailableFilename(path.join(screenshotsDirectory, `${name}_${sanitizedWindowId}`), 'png');
+
+      const screenshotPath = availableFilename; // Don't join again with screenshotsDirectory
       fs.writeFileSync(screenshotPath, imageBuffer);
 
-      console.log(`Screenshot saved: ${screenshotPath}`);
+      captureScreenshot();
+
     } catch (error) {
       console.error(`Error capturing screenshot for window ${windowId}:`, error.message);
     }
   }
 });
+
+// Function to find a non-existing filename by appending a counter
+function findAvailableFilename(basePath, extension) {
+  let counter = 1;
+  let fileName = `${basePath}.${extension}`;
+
+  while (fs.existsSync(fileName)) {
+    fileName = `${basePath} (${counter}).${extension}`;
+    counter++;
+  }
+
+  return fileName;
+}
