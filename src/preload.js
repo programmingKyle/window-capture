@@ -9,4 +9,6 @@ contextBridge.exposeInMainWorld('api', {
     openScreenSecurity: () => ipcRenderer.invoke('open-screen-security'),
     getScreenAccess: () => ipcRenderer.invoke('get-screen-access'),
     getScreenSources: () => ipcRenderer.invoke('get-sources'),
+
+    captureScreenshots: (data) => ipcRenderer.invoke('capture-screenshots', data),
 });

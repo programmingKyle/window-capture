@@ -1,5 +1,6 @@
-const { app, BrowserWindow, ipcMain, desktopCapturer } = require('electron');
+const { app, BrowserWindow, ipcMain, desktopCapturer, nativeImage, screen } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const IS_OSX = process.platform === 'darwin';
 
 let mainWindow;
@@ -61,4 +62,57 @@ ipcMain.handle('get-sources', async () => {
             return source;
         });
     });
+});
+
+
+
+ipcMain.handle('capture-screenshots', async (event, data) => {
+  if (!data || !data.windowIds) {
+    return;
+  }
+
+  console.log(data.windowIds);
+
+  const screenshotsDirectory = path.join(__dirname, 'images');
+
+  // Ensure the directory exists or create it
+  if (!fs.existsSync(screenshotsDirectory)) {
+    fs.mkdirSync(screenshotsDirectory);
+  }
+
+  // Iterate through each window id
+  for (const windowId of data.windowIds) {
+    try {
+      // Get the display info for the screen containing the window
+      const windowDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+
+      // Capture the content of the window
+      const sources = await desktopCapturer.getSources({
+        types: ['window', 'screen'],
+        thumbnailSize: {
+          width: windowDisplay.workAreaSize.width,
+          height: windowDisplay.workAreaSize.height,
+        },
+        fetchWindowIcons: true,
+      });
+
+      const windowSource = sources.find(source => source.id === windowId);
+      if (!windowSource) {
+        console.error(`Window with id ${windowId} not found.`);
+        continue;
+      }
+
+      const image = nativeImage.createFromDataURL(windowSource.thumbnail.toDataURL());
+      const imageBuffer = image.toPNG();
+
+      // Sanitize windowId for filename
+      const sanitizedWindowId = windowId.replace(/:/g, '_');
+      const screenshotPath = path.join(screenshotsDirectory, `screenshot_${sanitizedWindowId}.png`);
+      fs.writeFileSync(screenshotPath, imageBuffer);
+
+      console.log(`Screenshot saved: ${screenshotPath}`);
+    } catch (error) {
+      console.error(`Error capturing screenshot for window ${windowId}:`, error.message);
+    }
+  }
 });

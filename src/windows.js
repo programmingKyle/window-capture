@@ -96,3 +96,10 @@ function removeIDFromArray(id){
     console.log(selected);
   }
 }
+
+function clearSelection() {
+  const selectedImages = document.querySelectorAll('.window-content-item img.select');
+  selectedImages.forEach(image => {
+    image.classList.remove('select');
+  });
+}
