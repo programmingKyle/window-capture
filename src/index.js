@@ -26,6 +26,7 @@ const createWindow = () => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+  initialLaunch();
 };
 
 // This method will be called when Electron has finished
@@ -52,6 +53,60 @@ app.on('activate', () => {
 
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
+function initialLaunch() {
+  const screenshotsDirectory = path.join(__dirname, 'images');
+
+  if (fs.existsSync(screenshotsDirectory)) {
+    console.log(`${screenshotsDirectory} already exists.`);
+  } else {
+    fs.mkdirSync(screenshotsDirectory);
+    console.log(`${screenshotsDirectory} created.`);
+  }
+
+  const optionsJSON = path.join(__dirname, 'options.json');
+  if (fs.existsSync(optionsJSON)) {
+    console.log(`${optionsJSON} already exists.`);
+    return;
+  }
+  const options = {
+    ScreenshotDirectory: screenshotsDirectory
+  };
+
+  const optionsJson = JSON.stringify(options, null, 2);
+
+  try {
+    fs.writeFileSync(optionsJSON, optionsJson);
+    console.log(`${optionsJSON} created with default options.`);
+  } catch (error) {
+    console.error(`Error creating ${optionsJSON}: ${error.message}`);
+  }
+}
+
+function getScreenshotLocation() {
+  const optionsJSON = path.join(__dirname, 'options.json');
+
+  try {
+    const optionsContent = fs.readFileSync(optionsJSON, 'utf-8');
+    const options = JSON.parse(optionsContent);
+    return options.ScreenshotDirectory;
+  } catch (error) {
+    console.error(`Error reading options.json: ${error.message}`);
+    return null;
+  }
+}
+
+ipcMain.handle('screenshot-directory-handler', async (event, data) => {
+  if (!data || !data.request) return null;
+
+  switch(data.request) {
+    case 'getLocation':
+      const location = getScreenshotLocation();
+      console.log(location);
+      return location;
+    default:
+      return null;
+  }
+});
 
 ipcMain.handle('open-screen-security', () => util.openSystemPreferences('security', 'Privacy_ScreenCapture'));
 ipcMain.handle('get-screen-access', () => !IS_OSX || systemPreferences.getMediaAccessStatus('screen') === 'granted');
@@ -60,8 +115,8 @@ ipcMain.handle('get-sources', async () => {
     const sources = await desktopCapturer.getSources({
       types: ['window', 'screen'],
       thumbnailSize: {
-        width: 1920, // Set the desired width
-        height: 1080, // Set the desired height
+        width: 1920,
+        height: 1080,
       },
     });
 
@@ -82,7 +137,7 @@ ipcMain.handle('capture-screenshots', async (event, data) => {
     return;
   }
 
-  const screenshotsDirectory = path.join(__dirname, 'images');
+  const screenshotsDirectory = getScreenshotLocation();
 
   // Ensure the directory exists or create it
   if (!fs.existsSync(screenshotsDirectory)) {
