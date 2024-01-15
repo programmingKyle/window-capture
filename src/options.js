@@ -23,6 +23,7 @@ selectFolderButton_el.addEventListener('click', async () => {
     saveDirectoryText_el.textContent = newLocation;
 });
 
-setDefaultButton_el.addEventListener('click', () => {
-
+setDefaultButton_el.addEventListener('click', async () => {
+    const location = await api.screenshotDirectoryHandler({request: 'defaultLocation'});
+    saveDirectoryText_el.textContent = location;
 });

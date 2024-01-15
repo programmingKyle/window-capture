@@ -80,19 +80,6 @@ function initialLaunch() {
   }
 }
 
-function getScreenshotLocation() {
-  const optionsJSON = path.join(__dirname, 'options.json');
-
-  try {
-    const optionsContent = fs.readFileSync(optionsJSON, 'utf-8');
-    const options = JSON.parse(optionsContent);
-    return options.ScreenshotDirectory;
-  } catch (error) {
-    console.error(`Error reading options.json: ${error.message}`);
-    return null;
-  }
-}
-
 ipcMain.handle('open-select-folder-dialog', async () => {
   try {
     const result = await dialog.showOpenDialog({
@@ -126,10 +113,26 @@ ipcMain.handle('screenshot-directory-handler', async (event, data) => {
     case 'setLocation':
       changeScreenshotLocation(data.newLocation);
       return;
+    case 'defaultLocation':
+      const defaultLocation = defaultScreenshotLocation();
+      return defaultLocation;
     default:
       return null;
   }
 });
+
+function getScreenshotLocation() {
+  const optionsJSON = path.join(__dirname, 'options.json');
+
+  try {
+    const optionsContent = fs.readFileSync(optionsJSON, 'utf-8');
+    const options = JSON.parse(optionsContent);
+    return options.ScreenshotDirectory;
+  } catch (error) {
+    console.error(`Error reading options.json: ${error.message}`);
+    return null;
+  }
+}
 
 function changeScreenshotLocation(location){
   try {
@@ -139,6 +142,19 @@ function changeScreenshotLocation(location){
     fs.writeFileSync(optionsJSON, JSON.stringify(options, null , 2));  
   } catch (error) {
     console.error(`Error changing location: ${error.message}`);
+  }
+}
+
+function defaultScreenshotLocation() {
+  try {
+    const defaultDirectory = path.join(__dirname, 'images');
+    const optionsContent = fs.readFileSync(optionsJSON, 'utf-8');
+    const options = JSON.parse(optionsContent);
+    options.ScreenshotDirectory = defaultDirectory;
+    fs.writeFileSync(optionsJSON, JSON.stringify(options, null , 2));  
+    return defaultDirectory;  
+  } catch (error) {
+    console.error(`Error returning to default: ${error}`)
   }
 }
 
