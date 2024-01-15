@@ -14,6 +14,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function populateSavedDirectory(){
     const location = await api.screenshotDirectoryHandler({request: 'getLocation'});
-    console.log(location);
     saveDirectoryText_el.textContent = location;
 }

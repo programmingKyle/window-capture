@@ -12,6 +12,8 @@ function getDisplayMedia() {
 		screenPickerOptions.system_preferences = true;
 	}
 
+	contentDiv_el.innerHTML = '<h3 style="grid-column: span 2">Populating... </h3>';
+
 	return new Promise(async (resolve, reject) => {
 		let has_access = await api.getScreenAccess();
 		if (!has_access) {

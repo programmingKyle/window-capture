@@ -56,11 +56,8 @@ app.on('activate', () => {
 function initialLaunch() {
   const screenshotsDirectory = path.join(__dirname, 'images');
 
-  if (fs.existsSync(screenshotsDirectory)) {
-    console.log(`${screenshotsDirectory} already exists.`);
-  } else {
+  if (!fs.existsSync(screenshotsDirectory)) {
     fs.mkdirSync(screenshotsDirectory);
-    console.log(`${screenshotsDirectory} created.`);
   }
 
   const optionsJSON = path.join(__dirname, 'options.json');
@@ -101,7 +98,6 @@ ipcMain.handle('screenshot-directory-handler', async (event, data) => {
   switch(data.request) {
     case 'getLocation':
       const location = getScreenshotLocation();
-      console.log(location);
       return location;
     default:
       return null;
@@ -115,8 +111,8 @@ ipcMain.handle('get-sources', async () => {
     const sources = await desktopCapturer.getSources({
       types: ['window', 'screen'],
       thumbnailSize: {
-        width: 1920,
-        height: 1080,
+        width: 320, // Adjust as needed
+        height: 180, // Adjust as needed
       },
     });
 
@@ -129,8 +125,6 @@ ipcMain.handle('get-sources', async () => {
     return [];
   }
 });
-
-
 
 ipcMain.handle('capture-screenshots', async (event, data) => {
   if (!data || !data.detials) {
