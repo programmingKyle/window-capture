@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('api', {
     openScreenshotFolder: (data) => ipcRenderer.invoke('open-screenshot-folder', data),
     
     screenshotDirectoryHandler: (data) => ipcRenderer.invoke('screenshot-directory-handler', data),
+    openSelectFolderDialog: () => ipcRenderer.invoke('open-select-folder-dialog'),
 
     pageHandler: (data) => ipcRenderer.invoke('page-handler', data),
 });

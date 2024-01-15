@@ -1,7 +1,9 @@
-const { app, BrowserWindow, ipcMain, desktopCapturer, nativeImage, screen, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, desktopCapturer, nativeImage, screen, shell, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const IS_OSX = process.platform === 'darwin';
+
+const optionsJSON = path.join(__dirname, 'options.json');
 
 let mainWindow;
 
@@ -60,7 +62,6 @@ function initialLaunch() {
     fs.mkdirSync(screenshotsDirectory);
   }
 
-  const optionsJSON = path.join(__dirname, 'options.json');
   if (fs.existsSync(optionsJSON)) {
     console.log(`${optionsJSON} already exists.`);
     return;
@@ -92,6 +93,29 @@ function getScreenshotLocation() {
   }
 }
 
+ipcMain.handle('open-select-folder-dialog', async () => {
+  try {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      title: 'Select Folder',
+      buttonLabel: 'Select',
+    });
+
+    // If the user selected a directory, return its path
+    if (!result.canceled && result.filePaths.length > 0) {
+      const selectedFolder = result.filePaths[0];
+      console.log('Selected Folder:', selectedFolder);
+      return selectedFolder;
+    } else {
+      console.log('Folder selection canceled.');
+      return null;
+    }
+  } catch (error) {
+    console.error('Error opening folder selection dialog:', error.message);
+    return null;
+  }
+});
+
 ipcMain.handle('screenshot-directory-handler', async (event, data) => {
   if (!data || !data.request) return null;
 
@@ -99,10 +123,24 @@ ipcMain.handle('screenshot-directory-handler', async (event, data) => {
     case 'getLocation':
       const location = getScreenshotLocation();
       return location;
+    case 'setLocation':
+      changeScreenshotLocation(data.newLocation);
+      return;
     default:
       return null;
   }
 });
+
+function changeScreenshotLocation(location){
+  try {
+    const optionsContent = fs.readFileSync(optionsJSON, 'utf-8');
+    const options = JSON.parse(optionsContent);
+    options.ScreenshotDirectory = location;
+    fs.writeFileSync(optionsJSON, JSON.stringify(options, null , 2));  
+  } catch (error) {
+    console.error(`Error changing location: ${error.message}`);
+  }
+}
 
 ipcMain.handle('open-screen-security', () => util.openSystemPreferences('security', 'Privacy_ScreenCapture'));
 ipcMain.handle('get-screen-access', () => !IS_OSX || systemPreferences.getMediaAccessStatus('screen') === 'granted');

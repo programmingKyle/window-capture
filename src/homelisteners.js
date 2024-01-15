@@ -10,7 +10,8 @@ screenshotButton_el.addEventListener('click', async () => {
 });
 
 openScreenshotFolder_el.addEventListener('click', async () => {
-    await api.openScreenshotFolder({path: ''});
+    const location = await api.screenshotDirectoryHandler({request: 'getLocation'});
+    await api.openScreenshotFolder({path: location});
 });
 
 optionsButton_el.addEventListener('click', async () => {

@@ -16,3 +16,13 @@ async function populateSavedDirectory(){
     const location = await api.screenshotDirectoryHandler({request: 'getLocation'});
     saveDirectoryText_el.textContent = location;
 }
+
+selectFolderButton_el.addEventListener('click', async () => {
+    const newLocation = await api.openSelectFolderDialog();
+    await api.screenshotDirectoryHandler({request: 'setLocation', newLocation});
+    saveDirectoryText_el.textContent = newLocation;
+});
+
+setDefaultButton_el.addEventListener('click', () => {
+
+});
