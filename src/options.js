@@ -3,6 +3,8 @@ const saveDirectoryText_el = document.getElementById('saveDirectoryText');
 const selectFolderButton_el = document.getElementById('selectFolderButton');
 const setDefaultButton_el = document.getElementById('setDefaultButton');
 
+let currentSaveDirectory;
+
 backButton_el.addEventListener('click', async () => {
     await api.pageHandler({location: 'index'});
 });
@@ -13,14 +15,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function populateSavedDirectory(){
-    const location = await api.screenshotDirectoryHandler({request: 'getLocation'});
-    saveDirectoryText_el.textContent = location;
+    currentSaveDirectory = await api.screenshotDirectoryHandler({request: 'getLocation'});
+    saveDirectoryText_el.textContent = currentSaveDirectory;
 }
 
 selectFolderButton_el.addEventListener('click', async () => {
     const newLocation = await api.openSelectFolderDialog();
-    await api.screenshotDirectoryHandler({request: 'setLocation', newLocation});
-    saveDirectoryText_el.textContent = newLocation;
+    if (newLocation !== null){
+        await api.screenshotDirectoryHandler({request: 'setLocation', newLocation});
+        saveDirectoryText_el.textContent = newLocation;    
+    } else {
+        saveDirectoryText_el.textContent = currentSaveDirectory;
+    }
 });
 
 setDefaultButton_el.addEventListener('click', async () => {

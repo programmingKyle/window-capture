@@ -27,7 +27,7 @@ const createWindow = () => {
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  //mainWindow.webContents.openDevTools();
   initialLaunch();
 };
 
@@ -63,7 +63,6 @@ function initialLaunch() {
   }
 
   if (fs.existsSync(optionsJSON)) {
-    console.log(`${optionsJSON} already exists.`);
     return;
   }
   const options = {
@@ -74,7 +73,6 @@ function initialLaunch() {
 
   try {
     fs.writeFileSync(optionsJSON, optionsJson);
-    console.log(`${optionsJSON} created with default options.`);
   } catch (error) {
     console.error(`Error creating ${optionsJSON}: ${error.message}`);
   }
@@ -91,10 +89,8 @@ ipcMain.handle('open-select-folder-dialog', async () => {
     // If the user selected a directory, return its path
     if (!result.canceled && result.filePaths.length > 0) {
       const selectedFolder = result.filePaths[0];
-      console.log('Selected Folder:', selectedFolder);
       return selectedFolder;
     } else {
-      console.log('Folder selection canceled.');
       return null;
     }
   } catch (error) {
